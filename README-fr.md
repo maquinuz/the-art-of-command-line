@@ -14,7 +14,7 @@
 - [Débogage du système](#débogage-du-système)
 - [Unilignes](#unilignes)
 - [Obscures mais utiles](#obscures-mais-utiles)
-- [Uniquement OS X](#uniquement-os-x)
+- [Uniquement macOS](#uniquement-macos)
 - [Uniquement Windows](#uniquement-windows)
 - [Autres ressources](#autres-ressources)
 - [Avertissement](#avertissement)
@@ -40,8 +40,8 @@ Contexte :
 - Ce guide est destiné aux débutants et aux utilisateurs chevronnés.
 Les objectifs sont l'*envergure* (tout est important), la *spécificité* (donner des exemples concrets des cas les plus courants) et la *concision* (éviter tout ce qui n'est pas essentiel et les digressions disponibles facilement ailleurs).
 Chaque astuce est indispensable dans certaines situations ou fait gagner beaucoup de temps par rapport aux solutions alternatives.
-- Il est écrit pour Linux, à l'exception des sections « [Uniquement OS X](#uniquement-os-X) » et « [Uniquement Windows](#uniquement-windows) ».
-Beaucoup d'items s'appliquent ou peuvent être installés sur d'autres Unices ou Mac OS (ou même Cygwin).
+- Il est écrit pour Linux, à l'exception des sections « [Uniquement macOS](#uniquement-macos) » et « [Uniquement Windows](#uniquement-windows) ».
+Beaucoup d'items s'appliquent ou peuvent être installés sur d'autres Unices ou macOS (ou même Cygwin).
 - L'accent est mis sur l'utilisation intéractive de Bash, bien que de nombreuses astuces s'appliquent aux autres shells et à l'écriture de scripts en Bash.
 - Il inclut les commandes « standard » d'Unix aussi bien que celles qui nécessitent l'installation de paquets spéciaux &mdash; tant qu'ils sont suffisamment importants pour mériter d'être mentionnés.
 
@@ -49,7 +49,7 @@ Remarques :
 
 - Afin que le guide tienne sur une seule page, du contenu est implicitement inclus par référence.
 Vous êtes suffisamment intelligents pour rechercher des renseignements ailleurs une fois que vous avez l'idée ou la commande à googler.
-Utilisez `apt-get`, `yum`, `dnf`, `pacman`, `pip` ou `brew` (selon votre distribution ou OS) pour installer de nouveaux programmes.
+Utilisez `apt`, `yum`, `dnf`, `pacman`, `pip` ou `brew` (selon votre distribution ou OS) pour installer de nouveaux programmes.
 - Allez sur [Explainshell](http://explainshell.com) pour obtenir de l'aide à propos des commandes, options, tubes, etc.
 
 
@@ -60,7 +60,9 @@ En fait, tapez `man bash` et parcourez toute la page&#8239;; elle est relativeme
 Les shells alternatifs peuvent être intéressants, mais Bash est puissant et disponible partout (apprendre *seulement* zsh, fish, etc., bien que cela soit tentant sur votre ordinateur portable, vous limite dans bien des situations, comme par exemple lors de l'utilisation de vrais serveurs).
 
 - Apprenez à bien utiliser au moins un éditeur en mode texte.
-Idéalement Vim (`vi`), car il n'a pas vraiment de concurrent lorsqu'il s'agit d'éditer inopinément un texte dans un terminal  (même si la plupart du temps vous utilisez Emacs, un gros EDI ou l'un de ces nouveaux éditeurs à la mode).
+L'éditeur `nano` est l'un des plus simples pour de l'édition simple (ouvrir, modifier, sauvegarder, rechercher).
+Cependant pour un usage avancé dans un terminal, rien ne remplace le vénérable Vim (`vi`), éditeur difficile à prendre en main, mais rapide et très complet.
+De nombreuses personnes utilisent également le classique Emacs, surtout pour d'importantes tâches d'édition (bien sûr, tout développeur moderne de logiciels travaillant sur un vaste projet n'utilise probablement pas un simple éditeur en mode texte et devrait donc aussi se familiariser avec des outils et des EDI graphiques modernes).
 
 - Sachez comment lire une documentation avec `man` (pour les curieux, `man man` liste les sections avec leur numéro, par exemple 1 pour les commandes «&nbsp;normales&nbsp;» , 5 pour les formats des fichiers et les conventions, et 8 pour tout ce qui concerne l'administration système).
 Trouvez les pages de manuel avec `apropos`.
@@ -141,7 +143,7 @@ Pour la liste complète, consultez `man 7 signal`.
 
 - Utilisez `nohup` ou `disown` pour qu'un processus en arrière-plan reste actif indéfiniment.
 
-- Vérifiez quels sont les processus qui écoutent à l'aide de `netstat -lntp` ou `ss -plat` (pour TCP; ajoutez `-u` pour UDP).
+- Vérifiez quels sont les processus qui écoutent à l'aide de `netstat -lntp`, `ss -plat` (pour TCP; ajoutez `-u` pour UDP) ou `lsof -iTCP -sTCP:LISTEN -P -n` (qui fonctionne aussi sur macOS). 
 
 - Voyez également `lsof` et `fuser` pour la liste des *sockets* et fichiers ouverts.
 
@@ -194,11 +196,16 @@ Par exemple, si `var=foo.pdf`, alors `echo ${var%.pdf}.txt` affiche `foo.txt`.
 
 - L'expansion des accolades avec `{`...`}` évite de retaper des textes similaires et automatise les combinaisons d'éléments de listes.
 C'est utile dans des exemples comme  `mv foo.{txt,pdf} some-dir` (qui déplace les deux fichiers), `cp somefile{,.bak}` (équivalent à `cp somefile somefile.bak`) ou `mkdir -p test-{a,b,c}/subtest-{1,2,3}` (qui engendre toutes les combinaisons possibles et crée une arborescence de répertoires).
+L'expansion des accolades est effectuée avant toutes les autres expansions.
 
-- La sortie d'une commande peut être traitée comme un fichier à l'aide de `<(some command)`.
+- Les expansions sont exécutées dans l'ordre suivant&nbsp;: expansion des accolades, développement du tilde, remplacement des paramètres et des variables, évaluation arithmétique, substitution de commande (de la gauche vers la droite), découpage en mots, puis développement des chemins. 
+Par exemple, une liste telle que `{1..20}` ne peut s'exprimer avec des variables en utilisant `{$a..$b}`.
+À la place, utilisez `seq` ou une boucle `for`&nbsp;; par exemple, `seq $a $b` ou `for((i=a; i<=b; i++)); do ...; done`.
+
+- La sortie d'une commande peut être traitée comme un fichier à l'aide de `<(some command)` (substitution de processus).
 Par exemple, pour comparer le fichier local `/etc/hosts` avec un fichier distant&nbsp;:
 ```sh
-      diff /etc/hosts <(ssh somehost cat /etc/hosts)
+      diff /etc/hosts/ <(ssh somehost cat /etc/hosts)
 ```
 
 - Lorsque vous écrivez des scripts, vous pourriez avoir envie de placer votre code entre accolades.
@@ -210,7 +217,13 @@ C'est particulièrement utile pour des scripts mis à disposition sur le web, af
 }
 ```
 
-- Renseignez-vous à propos des documents en ligne avec Bash, comme dans `cat <<EOF ...`.
+- Un «&nbsp;document intégré&nbsp;» permet de [rediriger plusieurs lignes en entrée](https://abs.traduc.org/abs-fr/ch19.html) comme si elles provenaient d'un fichier&nbsp;:
+```
+cat <<EOF
+entrée sur
+plusieurs lignes
+EOF
+```
 
 - En Bash, redirigez à la fois la sortie standard et la sortie des erreurs à l'aide de `some-command > logfile 2>&1` ou `some-command &>logfile`.
 Souvent, pour s'assurer qu'une commande ne laisse pas un descripteur de fichier ouvert sur l'entrée standard, l'attachant au terminal dans lequel vous vous trouvez, une bonne pratique consiste à ajouter `</dev/null`.
@@ -274,15 +287,17 @@ Par exemple,
 - Pour localiser un fichier par son nom dans le répertoire courant, `find . -iname '*something*'` (ou autres).
 Pour trouver un fichier n'importe où par son nom, utilisez `locate something` (mais n'oubliez pas que `updatedb` peut ne pas avoir indexé les fichiers récemment créés).
 
-- Pour une recherche à travers les fichiers sources ou fichiers de données (plus poussée que `grep -r`), utilisez [`ag`](https://github.com/ggreer/the_silver_searcher).
+- Pour effectuer une recherche parmi des fichiers sources ou des fichiers de données, il existe des alternatives plus avancées ou plus rapides que `grep -r`, parmi lesquels (en gros du plus ancien au plus récent) [`ack`](https://github.com/beyondgrep/ack2), [`ag`](https://github.com/ggreer/the_silver_searcher) (« *the silver searcher* ») et [`rg`](https://github.com/BurntSushi/ripgrep) (ripgrep).
 
 - Pour convertir du HTML en texte brut : `lynx -dump -stdin`.
 
 - Pour convertir du Markdown, du HTML et toutes sortes de formats texte, essayez [`pandoc`](http://pandoc.org).
+Par exemple, pour convertir un document Markdown au format Word : `pandoc README.md --from markdown --to docx -o temp.docx`
 
 - Si vous devez manipuler du XML, l'ancien `xmlstarlet` marche bien.
 
 - Pour le JSON, utilisez [`jq`](http://stedolan.github.io/jq/).
+Voir également [`jid`](https://github.com/simeji/jid) and [`jiq`](https://github.com/fiatjaf/jiq) pour une utilisation intéractive.
 
 - Pour le YAML, utilisez [`shyaml`](https://github.com/0k/shyaml).
 
@@ -311,6 +326,8 @@ Dans certains cas (tels que les opérations concernant les ensembles et l'unicit
 - Vous pouvez modifier l'environnement d'une commande particulière en préfixant son invocation par l'affectation de variables, comme dans `TZ=Pacific/Fiji date`.
 
 - Apprenez `awk` et `sed` pour de l'analyse de données élémentaire.
+Voir la section [Unilignes](#unilignes) pour des exemples.
+
 Par exemple, pour effectuer la somme de tous les nombres de la troisième colonne d'un fichier texte&nbsp;: `awk '{ x += $3 } END { print x}'`.
 C'est probablement trois fois plus rapide et trois fois plus petit que son équivalent en Python.
 
@@ -326,7 +343,6 @@ C'est probablement trois fois plus rapide et trois fois plus petit que son équi
     repren --full --preserve-case --from foo --to bar .
     # Restaure des fichiers de sauvegarde à l'aide de la
     # substitution whatever.bak -> whatever :
-    repren --renames --from '(.*)\.bak' --to '\1' *.bak
     # Même chose que ci-dessus avec rename s'il est disponible :
     rename 's/\.bak$//' *.bak
 ```
@@ -338,6 +354,8 @@ Il est aussi l'un des outils [les plus rapides](https://web.archive.org/web/2013
 ```sh
     mkdir empty && rsync -r --delete empty/ some-dir && rmdir some-dir
 ```
+
+- Pour surveiller l'état d'avancement d'une copie de fichiers, utilisez [`pv`](http://www.ivarch.com/programs/pv.shtml), [`pycp`](https://github.com/dmerejkowsky/pycp), [`pmonitor`](https://github.com/dspinellis/pmonitor), [`progress`](https://github.com/Xfennec/progress), `rsync --progress`, ou `dd status=progress` dans le cas d'une copie par blocs.
 
 - Utilisez `shuf` pour mélanger ou sélectionner aléatoirement des lignes d'un fichier.
 
@@ -362,17 +380,23 @@ Utilisez `vimdiff` pour comparer et éditer des fichiers.
 
 - Pour effectuer des différences entre des fichiers binaires (compression différentielle), utilisez `xdelta3`.
 
-- Pour changer l'encodage d'un texte, essayer `iconv`, ou `uconv` pour un usage plus sophistiqué : il permet quelques trucs avancés avec l'Unicode.
-Par exemple, cette commande met en minuscules et retire tous les accents (en les développant et les écartant)&nbsp;:
+- Pour changer l'encodage d'un texte, essayer `iconv`, ou `uconv` pour un usage plus avancée&nbsp;: il permet quelques trucs avancés avec l'Unicode.
+Par exemple&nbsp;:
 ```sh
-      uconv -f utf-8 -t utf-8 -x '::Any-Lower; ::Any-NFD; [:Nonspacing Mark:] >; ::Any-NFC; ' < input.txt > output.txt
+      # Affiche les codes hexadécimaux et les noms des caractères (utile pour déboguer) : 
+      uconv -f utf-8 -t utf-8 -x '::Any-Hex;' < input.txt
+      uconv -f utf-8 -t utf-8 -x '::Any-Name;' < input.txt
+      # Convertit en minuscule et supprime les accents :
+      uconv -f utf-8 -t utf-8 -x '::Any-Lower; ::Any-NFD; [:Nonspacing Mark:] >; 
+      ::Any-NFC;' < input.txt > output.txt
 ```
 
 - Pour découper des fichiers en morceaux, regardez `split` pour un découpage en morceaux de taille donnée et `csplit` pour un découpage en morceaux délimités par un motif.
 
-- Pour manipuler des dates et des heures, utilisez `dateadd`, `datediff`, `strptime`, etc. fournis par [`dateutils`](http://www.fresse.org/dateutils/).
+- Date et heure&nbsp;: pour obtenir la date et l'heure courantes au format [ISO 8601](https://fr.wikipedia.org/wiki/ISO_8601), utilisez `date -u +"%Y-%m-%dT%H:%M:%SZ"` (d'autres options [sont](https://stackoverflow.cmm/questions/7216358/date-command-on-os-x-doesnt-have-iso-8601-i-option) [problématiques](https://unix.stackexchange.com/questions/164826/date-command-iso-8601-option)).
+Pour manipuler des dates et des heures, utilisez `dateadd`, `datediff`, `strptime`, etc. fournis par [`dateutils`](http://www.fresse.org/dateutils/).
 
-- Utilisez `zless`, `zmore`, `zcat` et `zgrep` pour opérer sur des fichiers compressés.
+- Utilisez `zless`, `zmore`, `zcat` et `zgrep` pour travailler sur des fichiers compressés.
 
 - Les attributs d'un fichier peuvent être modifiés avec `chattr` et proposent une alternative de plus bas niveau aux permissions d'accès aux fichiers.
 Par exemple, l'attribut *immutable* protège un fichier contre toute suppression accidentelle: `sudo chattr +i /critical/directory/or/file`.
@@ -420,7 +444,7 @@ Ces commandes peuvent être utiles si un programme fonctionne mal ou plante et q
 Remarquez l'option de profilage (`-c`) et la possibilité de s'attacher à un processus en cours d'exécution (`-p`).
 Utilisez l'option `-f` pour ne pas manquer les appels des processus enfants.
 
-- Connaissez `ldd` pour afficher les bibliothèques partagées, etc.
+- Connaissez `ldd` pour afficher les bibliothèques partagées, mais [ne l'utilisez jamais sur des fichiers qui ne sont pas dignes de confiance](http://www.catonmat.net/blog/ldd-arbitrary-code-execution/).
 
 - Sachez comment vous connecter à un processus en cours d'exécution avec `gdb` et récupérer la trace des appels.
 
@@ -449,9 +473,9 @@ Supposez que `a` et `b` soient des fichiers texte ne contenant pas de lignes ré
 C'est rapide et fonctionne sur des fichiers de taille quelconque jusqu'à plusieurs gigaoctets (le tri n'est pas limité par la capacité mémoire bien que vous puissiez avoir besoin d'utiliser l'option `-T` si `/tmp` est sur une petite partition racine).
 Voyez aussi la remarque à propos de `LC_ALL` ci-dessus et l'option `-u` de `sort` (omise ci-dessous pour plus de clarté).
 ```sh
-    cat a b | sort | uniq > c       # c est l'union de a et b
-    cat a b | sort | uniq -d > c    # c est l'intersection de a et b
-    cat a b b | sort | uniq -u > c  # c est la difference  a - b
+    sort a b | uniq > c   # c is a union b
+    sort a b | uniq -d > c   # c is a intersect b
+    sort a b b | uniq -u > c   # c is set difference a - b
 ```
 
 - Utilisez `grep . *` pour inspecter rapidement les contenus des fichiers d'un repértoire (chaque ligne est précédé du nom du fichier) ou `head -100 *` (chaque fichier a un titre).
@@ -470,7 +494,7 @@ Cela peut être utile pour des répertoires remplis de fichiers de configuration
 - Supposons que vous ayez un fichier texte comme un fichier journal de serveur web et q'une certaine valeur, comme un paramètre `acct_id` présent dans l'URL, figure à certaines lignes.
 Si vous voulez un décompte du nombre de requêtes pour chaque valeur de `acct_id`&nbsp;:
 ```sh
-    cat access.log | egrep -o 'acct_id=[0-9]+' | cut -d= -f2 | sort | uniq -c | sort -rn
+    egrep -o 'acct_id=[0-9]+' access.log | cut -d= -f2 | sort | uniq -c | sort -rn
 ```
 
 - Pour surveiller en permanence tout changement, utilisez `watch`, par exemple vérifiez les modifications dans les fichiers d'un répertoire avec `watch -d -n 2 'ls -rtlh | tail'` ou surveillez les paramètres de votre réseau tout en dépannant la configuration de votre wifi avec `watch -d -n 2 ifconfig`.
@@ -479,10 +503,11 @@ Si vous voulez un décompte du nombre de requêtes pour chaque valeur de `acct_i
 ```sh
      function taocl() {
         curl -s https://raw.githubusercontent.com/jlevy/the-art-of-command-line/master/README.md |
+          sed '/cowsay[.]png/d' |
           pandoc -f markdown -t html |
           xmlstarlet fo --html --dropdtd |
           xmlstarlet sel -t -v "(html/body/ul/li[count(p)>0])[$RANDOM mod last()+1]" |
-          xmlstarlet unesc | fmt -80
+          xmlstarlet unesc | fmt -80 | iconv -t US
       }
 ```
 
@@ -551,15 +576,11 @@ Si vous voulez un décompte du nombre de requêtes pour chaque valeur de `acct_i
 
 - `watch` : exécute une commande périodiquement, affiche le résultat et surligne les différences entre les résultats.
 
+- [`when-changed`](https://github.com/joh/when-changed) : exécute n'importe quelle commande donnée à chaque fois qu'un fichier est modifié. Voir également `inotifywait` et `entr`. 
+
 - `tac` : affiche des fichiers à l'envers.
 
-- `shuf` : sélection aléatoire de lignes d'un fichier.
-
 - `comm` : compare ligne à ligne deux fichiers triés.
-
-- `pv` : surveille la progression des données à travers un tube.
-
-- `hd`, `hexdump`, `xxd`, `biew` et `bvi` : dump et édition de fichiers binaires.
 
 - `strings` : extrait du texte de fichiers binaires.
 
@@ -581,7 +602,7 @@ Si vous voulez un décompte du nombre de requêtes pour chaque valeur de `acct_i
 
 - `nm` : affiche les symboles des fichiers objets.
 
-- `ab` : mesure les performances de serveurs web.
+- `ab` ou [`wrk`](https://github.com/wg/wrk) : mesure les performances de serveurs web.
 
 - `strace`: trace les appels système.
 
@@ -638,39 +659,56 @@ Si vous voulez un décompte du nombre de requêtes pour chaque valeur de `acct_i
 - `fortune`, `ddate` et `sl` : euh, bon, seulement si vous estimez que les locomotives à vapeur et les citations de Jean-Claude Van Damme sont « utiles ».
 
 
-## Uniquement OS X
+## Uniquement macOS
 
-Ce qui suit ne s'applique *qu'*à Mac OS.
+Ce qui suit ne s'applique *qu'*à macOS.
 
 - Gestion des paquets avec `brew` (Homebrew) ou `port` (MacPorts).
-Ceux-ci peuvent être utilisés pour installer sur Mac OS la plupart des commandes mentionnées ci-dessus.
+Ceux-ci peuvent être utilisés pour installer sur macOS la plupart des commandes mentionnées ci-dessus.
 
 - Copier la sortie de n'importe quelle commande dans une application de bureau avec `pbcopy` et coller l'entrée d'une commande avec `pbpaste`.
 
-- Pour permettre à la touche Option de fonctionner comme la touche Alt dans le terminal de Mac OS (comme dans les commandes **alt-b**, **alt-f**, etc), allez dans Préférences -> Profils -> Clavier et sélectionner « Choisir la touche Option comme touche virtuelle ».
+- Pour permettre à la touche Option de fonctionner comme la touche Alt dans le terminal de macOS (comme dans les commandes **alt-b**, **alt-f**, etc), allez dans Préférences -> Profils -> Clavier et sélectionner « Choisir la touche Option comme touche virtuelle ».
 
 - Pour ouvrir un fichier avec une application de bureau, utilisez `open` ou `open -a /Applications/Whatever.app`.
 
 - Spotlight&nbsp;: recherche de fichiers avec `mdfind` et affichage des métadonnées (telles que les informations EXIF d'une photo) avec `mdls`.
 
-- Ayez à l'esprit que Mac OS dérive du système Unix BSD et que beaucoup de commandes (par exemples `ps`, `ls`, `tail`, `awk`, `sed`) présentent de légères différences avec leurs versions pour Linux, qui lui est largement influencé par System V et les outils GNU.
+- Ayez à l'esprit que macOS dérive du système Unix BSD et que beaucoup de commandes (par exemple `ps`, `ls`, `tail`, `awk`, `sed`) présentent de légères différences avec leurs versions pour Linux, qui lui est largement influencé par System V et les outils GNU.
 Vous pouvez souvent faire la distinction grâce à l'en-tête « BSD General Commands Manual » dans les pages de manuel.
 Dans certains cas, les versions GNU peuvent également être installées (telles que `gawk` et `gsed` pour GNU awk et GNU sed).
 Pour écrire des scripts Bash multi-plateformes évitez d'utiliser de telles commandes (par exemple, envisagez d'utiliser Python ou Perl) ou alors testez-les soigneusement.
 
-- Pour obtenir des informations sur la version de Mac OS, utilisez `sw_vers`.
+- Pour obtenir des informations sur la version de macOS, utilisez `sw_vers`.
 
 
 ## Uniquement Windows
 
 Ce qui suit ne concerne que Windows.
 
-- Sur Windows 10, [Bash sous Ubuntu sur Windows](https://msdn.microsoft.com/commandline/wsl/about) fournit un environnement Bash avec les utilitaires en ligne de commande d'Unix.
-Du côté positif, cela permet à des programmes Linux de s'exécuter sous Windows.
-En revanche, il n'est pas possible de lancer des programmes Windows depuis le *prompt* de Bash.
+### Différentes manières d'obtenir les outils Unix sous Windows
 
 - Installez [Cygwin](http://cygwin.com) pour bénéficier de la puissance du shell Unix sous Microsoft Windows.
 La majorité de ce qui est décrit dans ce document fonctionnera *out of the box*.
+
+- Sous Windows 10, [Windows Subsystem for Linux (WSL)](https://msdn.microsoft.com/commandline/wsl/about) fournit un environnement Bash avec les utilitaires en ligne de commandes d'Unix.
+
+- Si vous êtes surtout intéressés par les outils de developpement GNU (comme GCC) sur Windows, jetez un œil à [MinGW](http://www.mingw.org/) et à son package [MSYS](http://www.mingw.org/wiki/msys) qui fournit des utilitaires tels que bash, gawk, make et grep.
+MSYS ne dispose pas de toutes les fonctionnalités de Cygwin.
+MinGW est particulièrement utile pour porter sous Windows des outils Unix.
+
+- Une autre manière d'obtenir le *look and feel* d'Unix sous Windows est d'utiliser [Cash](https://github.com/dthree/cash).
+Notez que très peu de commandes Unix et d'options de ligne de commande sont disponibles dans cet environnement.
+
+### Outils en ligne de commande utiles pour Windows
+
+- Vous pouvez accomplir et scripter la plupart des tâches d'administration système de Windows depuis la ligne de commande à l'aide de `wmic`.
+
+- Parmi les outils réseaux en ligne de commande nativement disponibles sous windows que vous devriez trouver utiles, on trouve `ping`, `ipconfig`, `tracert` et `netstat`.
+
+- Vous pouvez effectuer [de nombreuses tâches sous Windows](http://www.thewindowsclub.com/rundll32-shortcut-commands-windows) en invoquant la commande `Rundll32`.
+
+### Trucs et astuces à propos de Cygwin
 
 - Installez des programmes Unix supplémentaires à l'aide du gestionnaire de paquets de Cygwin.
 
@@ -678,7 +716,7 @@ La majorité de ce qui est décrit dans ce document fonctionnera *out of the box
 
 - Accédez au presse-papier de Windows par `/dev/clipboard`.
 
-- Exécutez `cygstart` pour ouvrir un fichier quelconque à l'aide de son application enregistrée.
+- Exécutez `cygstart` pour ouvrir un fichier quelconque avec l'application associée.
 
 - Accédez à la base de registres de Windows avec `regtool`.
 
@@ -686,19 +724,10 @@ La majorité de ce qui est décrit dans ce document fonctionnera *out of the box
 Effectuez des conversions entre les deux types de chemin avec l'utilitaire `cygpath`.
 C'est particulièrement utile pour invoquer des programmes Windows dans les scripts.
 
-- Vous pouvez accomplir et scripter la plupart des tâches d'administration système de Windows depuis la ligne de commande en apprenant et en utilisant `wmic`.
-
-- Une autre possibilité pour avoir le *look and feel* Unix sous Windows est d'utiliser [Cash](https://github.com/dthree/cash).
-Notez que très peu de commandes Unix et d'options de ligne de commande sont disponibles dans cet environnement.
-
-- Une solution alternative pour se procurer les outils de développement GNU sous Windows, tels que GCC, est [MinGW](http://www.mingw.org/) et son package [MSYS](http://www.mingw.org/wiki/msys) qui fournit des utilitaires comme bash, gawk, make et grep.
-MSYS ne dispose pas de toutes les fonctionnalités de Cygwin.
-MinGW est particulièrement utile pour porter sous Windows des outils Unix.
-
 ## Autres ressources
 
 - [awesome-shell](https://github.com/alebcay/awesome-shell)&nbsp;: une liste organisée d'outils et de ressources pour le shell.
-- [awesome-osx-command-line](https://github.com/herrbischoff/awesome-osx-command-line)&nbsp;: un guide plus approfondi sur la ligne de commande pour Mac OS.
+- [awesome-osx-command-line](https://github.com/herrbischoff/awesome-osx-command-line)&nbsp;: un guide plus approfondi sur la ligne de commande pour macOS.
 - [Strict mode](http://redsymbol.net/articles/unofficial-bash-strict-mode/)&nbsp;: pour écrire de meilleurs scripts shell.
 - [shellcheck](https://github.com/koalaman/shellcheck)&nbsp;: un outil d'analyse statique des scripts shell. L'équivalent de lint pour bash, sh et zsh.
 - [Filenames and Pathnames in Shell](http://www.dwheeler.com/essays/filenames-in-shell.html)&nbsp;: les points de détail, malheureusement compliqués, sur la manière de manipuler correctement les noms de fichiers dans les scripts shell.

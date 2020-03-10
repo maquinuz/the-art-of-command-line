@@ -37,7 +37,7 @@ aber angesichts des Interesses scheint es vielversprechend, Github zu nutzen, wo
 
 Umfang:
 
-- Diese Anleitung richtet sich an Anfänger und Fortgeschrittene. Die Ziele sind The goals are *Breite* (alles ist wichtig), *Genauigkeit* (konkrete Beispiele für die gebräuchlichsten Anwendungsfälle) und *Knappheit* (Dinge, die nicht wesentlich sind oder leicht anderswo nachgeschlagen werden können, sollen vermieden werden). Jeder Tipp ist in einer bestimmten Situation wesentlich oder deutlich zeitsparend gegenüber bestehenden Alternativen.
+- Diese Anleitung richtet sich an Anfänger und Fortgeschrittene. Die Ziele sind *Breite* (alles ist wichtig), *Genauigkeit* (konkrete Beispiele für die gebräuchlichsten Anwendungsfälle) und *Knappheit* (Dinge, die nicht wesentlich sind oder leicht anderswo nachgeschlagen werden können, sollen vermieden werden). Jeder Tipp ist in einer bestimmten Situation wesentlich oder deutlich zeitsparend gegenüber bestehenden Alternativen.
 - Sie ist für Linux geschrieben, mit der Ausnahme der Abschnitte "[Nur MacOS X](#nur-macos-x)" und "[Nur Windows](#nur-windows)". Viele der anderen Punkte lassen sich nutzen oder sind installierbar auf anderen Unices oder MacOS (oder sogar Cygwin).
 - Der Fokus liegt auf interaktiver Bash, allerdings gelten viele Tipps auch auf anderen Shells sowie für allgemeines Bash-Skripting.
 - Sie beinhaltet sowohl "normale" Unix-Befehle als auch solche, die bestimmte installierte Pakete voaussetzen -- sofern sie wichtig genug sind, dass sie die Aufnahme in diese Anleitung verdienen.
@@ -550,9 +550,25 @@ Diese Hinweise sind *nur* für MacOS relevant.
 
 Diese Hinweise sind *nur* für Windows relevant.
 
-- Mit Windows 10 kannst du [Bash on Ubuntu on Windows](https://msdn.microsoft.com/commandline/wsl/about) benutzen, das eine vertraute Bash-Umgebung mit Unix-Befehlszeilen-Werkzeugen. Dies erlaubt einerseits die Nutzung von Linux-Programmen auf Windows, unterstützt andererseits jedoch nicht die Ausführung von Windows-Programmen von der Bash-Konsole.
+### Möglichkeiten, Unix-Tools unter Windows zu erhalten
 
 - Zugriff auf die Macht der Unix-Shell erhälst du unter Microsoft Windows durch die Installation von  [Cygwin](https://cygwin.com/). Die meisten hier beschriebenen Dinge funktionieren damit ohne weiteren Aufwand.
+
+- Mit Windows 10 kannst du [Bash on Ubuntu on Windows](https://msdn.microsoft.com/commandline/wsl/about) benutzen, das eine vertraute Bash-Umgebung mit Unix-Befehlszeilen-Werkzeugen. Dies erlaubt einerseits die Nutzung von Linux-Programmen auf Windows, unterstützt andererseits jedoch nicht die Ausführung von Windows-Programmen von der Bash-Konsole.
+
+- Eine weitere Option, GNU-Entwicklerwerkzeuge (etwa GCC) auf Windows zu nutzen, besteht darin, [MinGW](http://www.mingw.org/) und dessen Paket [MSYS](http://www.mingw.org/wiki/msys), das Hilfsprogramme wie bash, gawk, make and grep beinhaltet, zu installieren. MSYS bringt allerdings nicht so viele Features mit wie etwa Cygwin. MinGW ist besonders nützlich für die Erstellung nativer Windows-Ports von Unix-Werkzeugen.
+
+- Eine andere Möglichkeit, ein wenig Unix auf dein Windows-System zu bringen, bietet [Cash](https://github.com/dthree/cash). Beachte allerdings, dass nur sehr wenige Unix-Befehle und Befehlszeilen-Optionen in dieser Umgebung zur Verfügung stehen.
+
+### Nützliche Windows Befehlszeilen-Werkzeugen
+
+- Du kannst die meisten Aufgaben der Windows-Systemverwaltung von der Befehlszeile ausführen und skripten, indem du den Umgang mit `wmic` lernst.
+
+- Native Windows Befehlszeilen Netzwerk Werkzeugen, die du nützlich finden kannst, gehören `ping`,` ipconfig`, `traceroute` und `netstat`.
+
+- Du kannst [viele nützliche Windows-Aufgaben] (http://www.thewindowsclub.com/rundll32-shortcut-commands-windows) durch Aufrufen des Befehls `Rundll32` ausführen.
+
+### Cygwin Tipps und Tricks
 
 - Installiere zusätzliche Unix-Programme mit Cygwins Paketmanager.
 
@@ -565,12 +581,6 @@ Diese Hinweise sind *nur* für Windows relevant.
 - Greife mit `regtool` auf die Windows-Registry zu.
 
 - Beachte, dass der Windows-Pfad `C:\` unter Cygwin zu `/cygdrive/c` wird und dass Cygwins `/` unter Windows als `C:\cygwin` verfügbar ist. Für die Umwandlung zwischen Cygwin- und Windows-Pfaden steht `cygpath` zur Verfügung. Dies ist inbesondere für Skripte nützlich, welche Windows-Programme ausführen.
-
-- Du kannst die meisten Aufgaben der Windows-Systemverwaltung von der Befehlszeile ausführen und skripten, indem du den Umgang mit `wmic` lernst.
-
-- Eine andere Möglichkeit, ein wenig Unix auf dein Windows-System zu bringen, bietet [Cash](https://github.com/dthree/cash). Beachte allerdings, dass nur sehr wenige Unix-Befehle und Befehlszeilen-Optionen in dieser Umgebung zur Verfügung stehen.
-
-- Eine weitere Option, GNU-Entwicklerwerkzeuge (etwa GCC) auf Windows zu nutzen, besteht darin, [MinGW](http://www.mingw.org/) und dessen Paket [MSYS](http://www.mingw.org/wiki/msys), das Hilfsprogramme wie bash, gawk, make and grep beinhaltet, zu installieren. MSYS bringt allerdings nicht so viele Features mit wie etwa Cygwin. MinGW ist besonders nützlich für die Erstellung nativer Windows-Ports von Unix-Werkzeugen.
 
 
 ## Weitere Quellen
